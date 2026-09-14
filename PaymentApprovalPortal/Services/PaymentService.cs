@@ -3,9 +3,9 @@ using PaymentApprovalPortal.Repositories;
 
 namespace PaymentApprovalPortal.Services;
 
-public class PaymentService(IPaymentRepository repository) : IPaymentService
+public class PaymentService(IPaymentRepository repository, IConfiguration configuration) : IPaymentService
 {
-    public const decimal ApprovalThreshold = 10_000m;
+    private readonly decimal ApprovalThreshold = configuration.GetValue<decimal>("PaymentSettings:ApprovalThreshold", 10_000m);
 
     public Payment Create(Payment payment)
     {
