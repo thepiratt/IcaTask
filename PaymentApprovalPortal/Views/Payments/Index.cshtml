@@ -67,9 +67,9 @@ else
                         <td>@payment.ReceiverName</td>
                         <td><code>@payment.AccountNumber</code></td>
                         <td class="text-end">
-                            @payment.Amount.ToString("N2", CultureInfo.InvariantCulture)
+                            @payment.Amount.ToString("C", new CultureInfo("sv-SE"))
                         </td>
-                        <td class="text-muted">@payment.PaymentMessage</td>
+                        <td class="text-muted">@(payment.PaymentMessage ?? "—")</td>
                         <td>
                             <span class="badge @BadgeClass(payment.Status)">@payment.Status</span>
                         </td>
