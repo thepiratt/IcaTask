@@ -9,4 +9,5 @@ public class Payment
     public string? PaymentMessage { get; set; }
     public PaymentStatus Status { get; set; } = PaymentStatus.Draft;
     public DateTime CreatedDate { get; set; }
+    public List<AuditEntry> AuditTrail { get; set; } = new();
 }

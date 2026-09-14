@@ -10,17 +10,21 @@ public class PaymentService(IPaymentRepository repository) : IPaymentService
     public Payment Create(Payment payment)
     {
         payment.Id = Guid.NewGuid();
-        payment.CreatedDate = DateTime.Now;
+        payment.CreatedDate = DateTime.UtcNow;
+        payment.AuditTrail = new List<AuditEntry>();
 
         payment.Status = PaymentStatus.Draft;
+        payment.AuditTrail.Add(new AuditEntry("Payment created (Draft)"));
 
         if (payment.Amount > ApprovalThreshold)
         {
             payment.Status = PaymentStatus.PendingApproval;
+            payment.AuditTrail.Add(new AuditEntry($"Amount above {ApprovalThreshold:N0} SEK threshold - pending approval (PendingApproval)"));
         }
         else
         {
             payment.Status = PaymentStatus.Executed;
+            payment.AuditTrail.Add(new AuditEntry("Payment executed (Executed)"));
         }
 
         repository.Add(payment);
@@ -52,8 +56,10 @@ public class PaymentService(IPaymentRepository repository) : IPaymentService
             return false;
 
         payment.Status = PaymentStatus.Approved;
+        payment.AuditTrail.Add(new AuditEntry("Payment approved (Approved)"));
 
         payment.Status = PaymentStatus.Executed;
+        payment.AuditTrail.Add(new AuditEntry("Payment executed (Executed)"));
 
         return repository.Update(payment);
     }
@@ -67,6 +73,7 @@ public class PaymentService(IPaymentRepository repository) : IPaymentService
             return false;
 
         payment.Status = PaymentStatus.Rejected;
+        payment.AuditTrail.Add(new AuditEntry("Payment rejected (Rejected)"));
 
         return repository.Update(payment);
     }
