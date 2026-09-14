@@ -1,32 +1,11 @@
 ﻿using PaymentApprovalPortal.Models;
+using PaymentApprovalPortal.Repositories;
 
 namespace PaymentApprovalPortal.Services;
 
-public class PaymentService : IPaymentService
+public class PaymentService(IPaymentRepository repository) : IPaymentService
 {
     public const decimal ApprovalThreshold = 10_000m;
-
-    private readonly List<Payment> _payments = new();
-    private readonly object _lock = new();
-
-    public bool Approve(Guid id)
-    {
-        lock (_lock)
-        {
-            var payment = _payments.FirstOrDefault(p => p.Id == id);
-
-            if (payment is null || payment.Status != PaymentStatus.PendingApproval)
-            {
-                return false;
-            }
-
-            payment.Status = PaymentStatus.Approved;
-
-            payment.Status = PaymentStatus.Executed;
-
-            return true;
-        }
-    }
 
     public Payment Create(Payment payment)
     {
@@ -44,51 +23,51 @@ public class PaymentService : IPaymentService
             payment.Status = PaymentStatus.Executed;
         }
 
-        lock (_lock)
-        {
-            _payments.Add(payment);
-        }
+        repository.Add(payment);
 
         return payment;
     }
 
     public bool Delete(Guid id)
     {
-        throw new NotImplementedException();
+        return repository.Delete(id);
     }
 
     public IReadOnlyList<Payment> GetAll()
     {
-        lock (_lock)
-        {
-            return _payments
-                .OrderByDescending(p => p.CreatedDate)
-                .ToList();
-        }
+        return repository.GetAll();
     }
 
     public Payment? GetById(Guid id)
     {
-        lock (_lock)
-        {
-            return _payments.FirstOrDefault(p => p.Id == id);
-        }
+        return repository.GetById(id);
+    }
+
+    public bool Approve(Guid id)
+    {
+
+        var payment = repository.GetById(id);
+
+        if (payment is null || payment.Status != PaymentStatus.PendingApproval)
+            return false;
+
+        payment.Status = PaymentStatus.Approved;
+
+        payment.Status = PaymentStatus.Executed;
+
+        return repository.Update(payment);
     }
 
     public bool Reject(Guid id)
     {
-        lock (_lock)
-        {
-            var payment = _payments.FirstOrDefault(p => p.Id == id);
 
-            if (payment is null || payment.Status != PaymentStatus.PendingApproval)
-            {
-                return false;
-            }
+        var payment = repository.GetById(id);
 
-            payment.Status = PaymentStatus.Rejected;
+        if (payment is null || payment.Status != PaymentStatus.PendingApproval)
+            return false;
 
-            return true;
-        }
+        payment.Status = PaymentStatus.Rejected;
+
+        return repository.Update(payment);
     }
 }
