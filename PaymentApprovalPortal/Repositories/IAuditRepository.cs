@@ -1,8 +1,8 @@
 ﻿using PaymentApprovalPortal.Models;
 
-namespace PaymentApprovalPortal.Services;
+namespace PaymentApprovalPortal.Repositories;
 
-public interface IAuditService
+public interface IAuditRepository
 {
     void Log(Guid paymentId, string description);
     IReadOnlyList<AuditEntry> GetByPaymentId(Guid paymentId);

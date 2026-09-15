@@ -1,9 +1,9 @@
 ﻿using PaymentApprovalPortal.Models;
 using System.Collections.Concurrent;
 
-namespace PaymentApprovalPortal.Services;
+namespace PaymentApprovalPortal.Repositories;
 
-public class AuditService : IAuditService
+public class InMemoryAuditRepository : IAuditRepository
 {
     private readonly ConcurrentDictionary<Guid, List<AuditEntry>> auditEntries = new();
 

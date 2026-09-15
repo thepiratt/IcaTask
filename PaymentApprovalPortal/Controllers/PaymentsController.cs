@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PaymentApprovalPortal.Models;
+using PaymentApprovalPortal.Repositories;
 using PaymentApprovalPortal.Services;
 
 namespace PaymentApprovalPortal.Controllers
 {
-    public class PaymentsController(IPaymentService paymentService, IAuditService auditService) : Controller
+    public class PaymentsController(IPaymentService paymentService, IAuditRepository auditService) : Controller
     {
         public IActionResult Index()
         {

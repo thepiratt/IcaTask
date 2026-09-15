@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IPaymentRepository, InMemoryPaymentRepository>();
-builder.Services.AddSingleton<IAuditService, AuditService>();
+builder.Services.AddSingleton<IAuditRepository, InMemoryAuditRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 var app = builder.Build();
