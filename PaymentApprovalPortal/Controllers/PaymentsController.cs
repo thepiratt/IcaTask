@@ -4,11 +4,21 @@ using PaymentApprovalPortal.Services;
 
 namespace PaymentApprovalPortal.Controllers
 {
-    public class PaymentsController(IPaymentService paymentService) : Controller
+    public class PaymentsController(IPaymentService paymentService, IAuditService auditService) : Controller
     {
         public IActionResult Index()
         {
-            return View(paymentService.GetAll());
+            var payments = paymentService.GetAll();
+
+            var viewModels = payments
+                .Select(payment => new PaymentDetailViewModel
+                {
+                    Payment = payment,
+                    AuditEntries = auditService.GetByPaymentId(payment.Id)
+                })
+                .ToList();
+
+            return View(viewModels);
         }
 
         [HttpGet]
@@ -31,14 +41,8 @@ namespace PaymentApprovalPortal.Controllers
                 ReceiverName = model.ReceiverName.Trim(),
                 AccountNumber = model.AccountNumber.Trim(),
                 Amount = model.Amount,
-                PaymentMessage = string.IsNullOrWhiteSpace(model.PaymentMessage)
-                    ? null
-                    : model.PaymentMessage.Trim()
+                PaymentMessage = model.PaymentMessage
             });
-
-            TempData["Success"] = payment.Status == PaymentStatus.Executed
-                ? $"Payment of {payment.Amount:N2} SEK was executed immediately (at or below the 10 000 SEK threshold)."
-                : $"Payment of {payment.Amount:N2} SEK was created and is pending approval.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -47,15 +51,7 @@ namespace PaymentApprovalPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Approve(Guid id)
         {
-            if (paymentService.Approve(id))
-            {
-                TempData["Success"] = "Payment approved and executed.";
-            }
-            else
-            {
-                TempData["Error"] = "Payment could not be approved. Only payments pending approval can be approved.";
-            }
-
+            paymentService.Approve(id);
             return RedirectToAction(nameof(Index));
         }
 
@@ -63,15 +59,7 @@ namespace PaymentApprovalPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Reject(Guid id)
         {
-            if (paymentService.Reject(id))
-            {
-                TempData["Success"] = "Payment rejected.";
-            }
-            else
-            {
-                TempData["Error"] = "Payment could not be rejected. Only payments pending approval can be rejected.";
-            }
-
+            paymentService.Reject(id);
             return RedirectToAction(nameof(Index));
         }
 
@@ -79,15 +67,7 @@ namespace PaymentApprovalPortal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Delete(Guid id)
         {
-            if (paymentService.Delete(id))
-            {
-                TempData["Success"] = "Payment deleted.";
-            }
-            else
-            {
-                TempData["Error"] = "Payment not found.";
-            }
-
+            paymentService.Delete(id);
             return RedirectToAction(nameof(Index));
         }
     }

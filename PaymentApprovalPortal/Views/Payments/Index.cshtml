@@ -57,22 +57,18 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var payment in Model)
+                @foreach (var item in Model)
                 {
+                    var payment = item.Payment;
                     var collapseId = $"audit-{payment.Id}";
+
                     <tr>
-                        <td class="text-nowrap">
-                            @payment.CreatedDate.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
-                        </td>
+                        <td class="text-nowrap">@payment.CreatedDate.ToLocalTime()</td>
                         <td>@payment.ReceiverName</td>
                         <td><code>@payment.AccountNumber</code></td>
-                        <td class="text-end">
-                            @payment.Amount.ToString("C", new CultureInfo("sv-SE"))
-                        </td>
+                        <td class="text-end">@payment.Amount.ToString("C", new CultureInfo("sv-SE"))</td>
                         <td class="text-muted">@(payment.PaymentMessage ?? "—")</td>
-                        <td>
-                            <span class="badge @BadgeClass(payment.Status)">@payment.Status</span>
-                        </td>
+                        <td><span class="badge @BadgeClass(payment.Status)">@payment.Status</span></td>
                         <td class="text-end text-nowrap">
                             @if (payment.Status == PaymentApprovalPortal.Models.PaymentStatus.PendingApproval)
                             {
@@ -103,13 +99,14 @@ else
                         <td colspan="7" class="bg-light">
                             <strong class="d-block mb-1">Audit trail</strong>
                             <ul class="mb-0 small">
-                                @foreach (var entry in payment.AuditTrail)
+                                @foreach (var entry in item.AuditEntries)
                                 {
                                     <li>
                                         <span class="text-muted">
-                                            @entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+                                            @entry.Timestamp.ToLocalTime()
                                         </span>
-                                        &mdash; @entry.Description
+                                        - 
+                                        @entry.Description
                                     </li>
                                 }
                             </ul>
