@@ -3,18 +3,25 @@ using System.Collections.Concurrent;
 
 namespace PaymentApprovalPortal.Repositories;
 
-public class InMemoryPaymentRepository : IPaymentRepository
+public class InMemoryPaymentRepository(ILogger<InMemoryPaymentRepository> logger) : IPaymentRepository
 {
     private readonly ConcurrentDictionary<Guid, Payment> payments = new();
 
     public void Add(Payment payment)
     {
         payments[payment.Id] = payment;
+
+        logger.LogDebug("Payment {PaymentId} added to repository", payment.Id);
     }
 
     public bool Delete(Guid id)
     {
-        return payments.TryRemove(id, out _);
+        var removed = payments.TryRemove(id, out _);
+
+        if (removed)
+            logger.LogDebug("Payment {PaymentId} removed from repository", id);
+
+        return removed;
     }
 
     public IReadOnlyList<Payment> GetAll()
@@ -30,10 +37,13 @@ public class InMemoryPaymentRepository : IPaymentRepository
 
     public bool Update(Payment payment)
     {
-        if (!payments.ContainsKey(payment.Id))
+        if (!payments.TryGetValue(payment.Id, out var existing))
             return false;
 
-        payments[payment.Id] = payment;
-        return true;
+        var updated = payments.TryUpdate(payment.Id, payment, existing);
+        if (updated)
+            logger.LogDebug("Payment {PaymentId} updated in repository", payment.Id);
+
+        return updated;
     }
 }
