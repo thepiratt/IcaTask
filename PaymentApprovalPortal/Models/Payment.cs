@@ -8,11 +8,10 @@ public class Payment
     public decimal Amount { get; set; }
     public string? PaymentMessage { get; set; }
     public PaymentStatus Status { get; private set; } = PaymentStatus.Draft;
-    public DateTime CreatedDate { get; set; }
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public void MarkCreated()
     {
-        CreatedDate = DateTime.UtcNow;
         Status = PaymentStatus.Draft;
     }
 
