@@ -34,7 +34,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Create_Executes_WhenAmountAtOrBelowThreshold()
+    public void Create_ShouldCreatePayment_WhenAmountAtOrBelowThreshold()
     {
         SetupPolicy(10000m);
 
@@ -51,7 +51,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Create_MarksPendingApproval_WhenAmountExceedsThreshold()
+    public void Create_ShouldMarkPendingApproval_WhenAmountExceedsThreshold()
     {
         SetupPolicy(10000m);
 
@@ -67,7 +67,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Create_InvalidReceiver_Throws()
+    public void Create_ShouldThrow_WhenReceiverInvalid()
     {
         SetupPolicy(10000m);
 
@@ -82,7 +82,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Approve_Succeeds_WhenPending()
+    public void Approve_ShouldApproveAndExecute_WhenPending()
     {
         var payment = new Payment { ReceiverName = "Harun", AccountNumber = "555", Amount = 20000m };
         payment.MarkCreated();
@@ -104,7 +104,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Approve_Fails_WhenNotPending()
+    public void Approve_ShouldReturnFalse_WhenNotPending()
     {
         var payment = new Payment { ReceiverName = "Harun", AccountNumber = "666", Amount = 100m };
         payment.MarkCreated();
@@ -121,7 +121,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Reject_Succeeds_WhenPending()
+    public void Reject_ShouldRejectPayment_WhenPending()
     {
         var payment = new Payment { ReceiverName = "Harun", AccountNumber = "777", Amount = 20000m };
         payment.MarkCreated();
@@ -142,7 +142,7 @@ public class PaymentServiceTests
     }
 
     [Fact]
-    public void Delete_DelegatesToRepository()
+    public void Delete_ShouldDelegateToRepository()
     {
         var id = Guid.NewGuid();
         _paymentRepository.Setup(r => r.Delete(id)).Returns(true);
