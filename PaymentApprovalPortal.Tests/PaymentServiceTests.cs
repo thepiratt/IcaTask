@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 using Moq;
-using System.Globalization;
 using FluentAssertions;
 using PaymentApprovalPortal.Repositories;
 using PaymentApprovalPortal.Services;
@@ -14,33 +12,31 @@ public class PaymentServiceTests
     private readonly Mock<IPaymentRepository> _paymentRepository;
     private readonly Mock<IAuditRepository> _auditRepository;
     private readonly Mock<ILogger<PaymentService>> _logger;
-    private readonly Mock<IConfiguration> _configuration;
+    private readonly Mock<IPaymentApprovalPolicy> _approvalPolicy;
 
     public PaymentServiceTests()
     {
         _paymentRepository = new Mock<IPaymentRepository>();
         _auditRepository = new Mock<IAuditRepository>();
         _logger = new Mock<ILogger<PaymentService>>();
-        _configuration = new Mock<IConfiguration>();
+        _approvalPolicy = new Mock<IPaymentApprovalPolicy>();
     }
 
     private PaymentService CreateService() => new PaymentService(
         _paymentRepository.Object,
         _logger.Object,
-        _configuration.Object,
+        _approvalPolicy.Object,
         _auditRepository.Object);
 
-    private void SetupThreshold(decimal value)
+    private void SetupPolicy(decimal threshold)
     {
-        var section = new Mock<IConfigurationSection>();
-        section.Setup(s => s.Value).Returns(value.ToString(CultureInfo.InvariantCulture));
-        _configuration.Setup(c => c.GetSection("PaymentSettings:ApprovalThreshold")).Returns(section.Object);
+        _approvalPolicy.Setup(p => p.RequiresApproval(It.IsAny<decimal>())).Returns((decimal amount) => amount > threshold);
     }
 
     [Fact]
     public void Create_Executes_WhenAmountAtOrBelowThreshold()
     {
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
 
         var service = CreateService();
 
@@ -57,7 +53,7 @@ public class PaymentServiceTests
     [Fact]
     public void Create_MarksPendingApproval_WhenAmountExceedsThreshold()
     {
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
 
         var service = CreateService();
 
@@ -73,7 +69,7 @@ public class PaymentServiceTests
     [Fact]
     public void Create_InvalidReceiver_Throws()
     {
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
 
         var service = CreateService();
 
@@ -94,7 +90,7 @@ public class PaymentServiceTests
 
         _paymentRepository.Setup(r => r.GetById(payment.Id)).Returns(payment);
         _paymentRepository.Setup(r => r.Update(It.IsAny<Payment>())).Returns(true);
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
 
         var service = CreateService();
 
@@ -114,7 +110,7 @@ public class PaymentServiceTests
         payment.MarkCreated();
 
         _paymentRepository.Setup(r => r.GetById(payment.Id)).Returns(payment);
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
 
         var service = CreateService();
 
@@ -133,7 +129,7 @@ public class PaymentServiceTests
 
         _paymentRepository.Setup(r => r.GetById(payment.Id)).Returns(payment);
         _paymentRepository.Setup(r => r.Update(It.IsAny<Payment>())).Returns(true);
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
 
         var service = CreateService();
 
@@ -151,7 +147,7 @@ public class PaymentServiceTests
         var id = Guid.NewGuid();
         _paymentRepository.Setup(r => r.Delete(id)).Returns(true);
 
-        SetupThreshold(10000m);
+        SetupPolicy(10000m);
         var service = CreateService();
 
         var ok = service.Delete(id);
