@@ -4,9 +4,8 @@ using PaymentApprovalPortal.Repositories;
 
 namespace PaymentApprovalPortal.Services;
 
-public class PaymentService(IPaymentRepository repository, ILogger<PaymentService> logger, IConfiguration configuration, IAuditRepository auditService) : IPaymentService
+public class PaymentService(IPaymentRepository repository, ILogger<PaymentService> logger, IPaymentApprovalPolicy approvalPolicy, IAuditRepository auditService) : IPaymentService
 {
-    private readonly decimal approvalThreshold = configuration.GetValue<decimal>("PaymentSettings:ApprovalThreshold", 10_000m);
 
     public Payment Create(Payment payment)
     {
@@ -20,7 +19,7 @@ public class PaymentService(IPaymentRepository repository, ILogger<PaymentServic
 
         auditService.Log(payment.Id, "Payment created.");
 
-        if (payment.Amount > approvalThreshold)
+        if (approvalPolicy.RequiresApproval(payment.Amount))
         {
             payment.MarkPendingApproval();
 

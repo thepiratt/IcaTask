@@ -8,6 +8,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IPaymentRepository, InMemoryPaymentRepository>();
 builder.Services.AddSingleton<IAuditRepository, InMemoryAuditRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddSingleton<IPaymentApprovalPolicy, PaymentApprovalPolicy>();
 
 var app = builder.Build();
 
